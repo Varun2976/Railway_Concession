@@ -86,7 +86,7 @@ function App() {
                 plan: formData.plan,
                 phone: idData.phone,
                 aadhar: idData.aadhar,
-                amount: Number(calculatedAmount), // Explicit number conversion
+                amount: Number(calculatedAmount),
             };
 
             console.log("Data being sent:", dataToSend); // Debug log
@@ -187,7 +187,7 @@ function App() {
             amount = monthlyPrice * 3;
         }
 
-        return Number(amount); // ADD THIS LINE
+        return Number(amount);
     };
 
     const handleFormChange = (e) => {
@@ -200,7 +200,6 @@ function App() {
                 ...(name === "source" && { destination: "" }),
             };
 
-            // ← ADD THESE LINES
             if (name === "source" || name === "plan") {
                 updated.amount = calculateAmount(updated.source, updated.plan);
             }
@@ -488,12 +487,14 @@ function App() {
             bottom: "1.5rem",
             right: "1.5rem",
             width: "360px",
-            height: "480px",
+            height: "500px",
             background: "white",
             borderRadius: "16px",
-            boxShadow: "0 20px 40px rgba(0,0,0,0.2)",
+            boxShadow: "0 20px 40px rgba(0,0,0,0.25)",
             overflow: "hidden",
-            zIndex: 1000,
+            zIndex: 9999,
+            display: "flex",
+            flexDirection: "column",
         },
 
         chatbotHeader: {
@@ -505,6 +506,7 @@ function App() {
             justifyContent: "space-between",
             padding: "0 1rem",
             fontWeight: "600",
+            flexShrink: 0,
         },
 
         chatbotTitle: {
@@ -591,45 +593,10 @@ function App() {
                             >
                                 Continue
                             </button>
-                            <button
-                                onClick={() => setChatbotOpen(true)}
-                                style={{
-                                    marginTop: "1rem",
-                                    background: "transparent",
-                                    color: "#2563eb",
-                                    border: "none",
-                                    cursor: "pointer",
-                                    fontSize: "0.9rem",
-                                    textDecoration: "underline",
-                                }}
-                            >
-                                Need help?
-                            </button>
                         </div>
                     </div>
                 </div>
                 {/* Chatbot Window */}
-                {chatbotOpen && (
-                    <div style={styles.chatbotWindow}>
-                        <div style={styles.chatbotHeader}>
-                            <div style={styles.chatbotTitle}>
-                                Support Assistant
-                            </div>
-                            <button
-                                style={styles.chatbotClose}
-                                onClick={() => setChatbotOpen(false)}
-                            >
-                                ×
-                            </button>
-                        </div>
-                        <iframe
-                            src="https://www.chatbase.co/chatbot-iframe/wXvfBD1IhMnOpV2PTuJoH"
-                            width="100%"
-                            style={{ height: "100%", border: "none" }}
-                            frameBorder="0"
-                        ></iframe>
-                    </div>
-                )}
             </>
         );
     }
