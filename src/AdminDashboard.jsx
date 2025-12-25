@@ -63,12 +63,14 @@ export default function AdminDashboard() {
         fetchData();
     }, []);
 
-    const filteredRegistrations = registrations.filter(
-        (reg) =>
-            reg.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            reg.aadhar.includes(searchTerm) ||
-            reg.phone.includes(searchTerm)
-    );
+    const filteredRegistrations = registrations.filter((reg) => {
+        if (!reg) return false;
+        const search = searchTerm.toLowerCase();
+        const name = (reg.name || '').toLowerCase();
+        const aadhar = (reg.aadhar || '').toString();
+        const phone = (reg.phone || '').toString();
+        return name.includes(search) || aadhar.includes(searchTerm) || phone.includes(searchTerm);
+    });
 
     const handleViewDetails = (user) => {
         setSelectedUser(user);
