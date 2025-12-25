@@ -234,11 +234,12 @@ function App() {
                 "linear-gradient(to bottom right, rgba(219, 234, 254, 0.3), transparent, rgba(243, 232, 255, 0.3))",
         },
         loginTitle: {
-            fontSize: "6rem",
+            fontSize: "5rem",
             fontWeight: "200",
             color: "#111827",
             textAlign: "center",
-            marginBottom: "8rem",
+            marginTop: "-3rem",
+            marginBottom: "1rem",
             whiteSpace: "nowrap",
             letterSpacing: "0.025em",
             position: "relative",
@@ -253,7 +254,7 @@ function App() {
         loginCard: {
             width: "100%",
             maxWidth: "48rem",
-            padding: "2rem",
+            padding: "1rem",
             position: "relative",
             zIndex: 10,
         },
@@ -261,7 +262,7 @@ function App() {
             background: "rgba(255, 255, 255, 0.4)",
             backdropFilter: "blur(40px)",
             borderRadius: "24px",
-            padding: "5rem",
+            padding: "2rem",
             border: "1px solid rgba(229, 231, 235, 0.3)",
             boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)",
         },
@@ -270,14 +271,17 @@ function App() {
             fontWeight: "300",
             color: "#111827",
             textAlign: "center",
-            marginBottom: "4rem",
+            marginTop: "-1rem",
+            marginBottom: "1rem",
             letterSpacing: "0.025em",
         },
         loginLabel: {
             display: "block",
-            fontSize: "1.125rem",
+            fontSize: "1.4rem",
             fontWeight: "500",
             color: "#374151",
+            marginTop: "2rem",
+            marginLeft: "0.5rem",
             marginBottom: "1rem",
         },
         loginInput: {
@@ -297,7 +301,7 @@ function App() {
             background: "#2563eb",
             color: "white",
             fontWeight: "500",
-            padding: "1.5rem",
+            padding: "0.9rem 1.5rem",
             fontSize: "1.25rem",
             borderRadius: "16px",
             transition: "all 0.3s",
@@ -490,8 +494,9 @@ function App() {
                 <div style={styles.loginCard}>
                     <div style={styles.loginCardInner}>
                         <h1 style={styles.loginHeading}>Sign In</h1>
+                        <hr></hr>
                         <div style={{ marginBottom: "2.5rem" }}>
-                            <label style={styles.loginLabel}>Email</label>
+                            <label style={styles.loginLabel}>Email:</label>
                             <input
                                 type="email"
                                 value={email}
