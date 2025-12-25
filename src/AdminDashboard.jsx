@@ -8,7 +8,6 @@ export default function AdminDashboard() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    // Replace with your deployed Google Apps Script Web App URL
     const SCRIPT_URL =
         "https://script.google.com/macros/s/AKfycby7pI3sOU_AfT2KBjavs-3sWez5XHnRT0u8kdLjXVuSaVPpPAwxYBQhZ7LLvdtRJWxR4g/exec";
 
@@ -304,13 +303,13 @@ export default function AdminDashboard() {
 // Registration Details Component
 function RegistrationDetails({ user, onBack, onStatusUpdate }) {
     const handleApprove = async () => {
-        await onStatusUpdate(user.id, "Approved");
         onBack();
+        await onStatusUpdate(user.id, "Approved");
     };
 
     const handleReject = async () => {
-        await onStatusUpdate(user.id, "Rejected");
         onBack();
+        await onStatusUpdate(user.id, "Rejected");
     };
 
     return (
@@ -329,7 +328,6 @@ function RegistrationDetails({ user, onBack, onStatusUpdate }) {
                     <h1 className="text-5xl font-light text-slate-900 mb-4">
                         Registration Details
                     </h1>
-                    <p className="text-xl text-slate-600">{user.name}</p>
                 </div>
 
                 {/* Form Card */}
