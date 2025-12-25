@@ -2,6 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-body{
-    font-family: "Inter";
+body {
+    font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont,
+        sans-serif;
 }

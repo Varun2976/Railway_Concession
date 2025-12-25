@@ -317,16 +317,17 @@ function App() {
         regInner: {
             maxWidth: "80rem",
             margin: "0 auto",
-            padding: "2rem 2rem 4rem",
+            padding: "0rem 2rem 4rem",
         },
         regHeader: {
             textAlign: "center",
-            marginBottom: "4rem",
+            marginBottom: "2rem",
         },
         regTitle: {
             fontSize: "3.75rem",
             fontWeight: "300",
             color: "#0f172a",
+            marginTop: "0rem",
             marginBottom: "1rem",
             letterSpacing: "-0.025em",
         },
@@ -334,6 +335,7 @@ function App() {
             fontSize: "1.25rem",
             color: "#64748b",
             fontWeight: "300",
+            marginTop: "0rem",
         },
         regCard: {
             background: "rgba(255, 255, 255, 0.7)",
@@ -342,13 +344,15 @@ function App() {
             boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)",
             border: "1px solid rgba(226, 232, 240, 0.5)",
             padding: "3rem",
+            marginTop: "-0.5rem",
         },
         sectionTitle: {
             fontSize: "1.5rem",
             fontWeight: "500",
             color: "#1e293b",
             marginBottom: "1.5rem",
-            paddingBottom: "0.75rem",
+            marginTop: "-0.5rem",
+            paddingBottom: "1rem",
             borderBottom: "1px solid #e2e8f0",
         },
         label: {
