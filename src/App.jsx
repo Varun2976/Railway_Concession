@@ -67,6 +67,12 @@ function App() {
 
         setIsSubmitting(true);
         try {
+            // FIX: Calculate amount one final time and ensure it's a number
+            const calculatedAmount = calculateAmount(
+                formData.source,
+                formData.plan
+            );
+
             const dataToSend = {
                 email: email,
                 name: formData.name,
@@ -79,7 +85,7 @@ function App() {
                 plan: formData.plan,
                 phone: idData.phone,
                 aadhar: idData.aadhar,
-                amount: Number(formData.amount), // Convert to number explicitly
+                amount: Number(calculatedAmount), // Explicit number conversion
             };
 
             console.log("Data being sent:", dataToSend); // Debug log
@@ -152,10 +158,10 @@ function App() {
         setCurrentPage("idcard");
     };
 
+    // FIX: Ensure calculateAmount always returns a number
     const calculateAmount = (source, plan) => {
         if (!source || !plan) return 0;
 
-        // Stations with ₹463/month pricing
         const tier1Stations = [
             "Goregaon",
             "Borivali",
@@ -164,26 +170,23 @@ function App() {
             "Ghansoli",
             "Ghatkopar",
         ];
-
-        // Stations with ₹612/month pricing
         const tier2Stations = ["Airoli", "Kharghar", "Mumra", "Matunga"];
 
         let monthlyPrice = 0;
-
         if (tier1Stations.includes(source)) {
             monthlyPrice = 463;
         } else if (tier2Stations.includes(source)) {
             monthlyPrice = 612;
         }
 
-        // Calculate based on plan
+        let amount = 0;
         if (plan === "monthly") {
-            return monthlyPrice;
+            amount = monthlyPrice;
         } else if (plan === "quarterly") {
-            return monthlyPrice * 3;
+            amount = monthlyPrice * 3;
         }
 
-        return 0;
+        return Number(amount); // ADD THIS LINE
     };
 
     const handleFormChange = (e) => {
@@ -192,14 +195,14 @@ function App() {
             const updated = {
                 ...prevData,
                 [name]: value,
-                // Reset year when degree changes to avoid invalid selections
                 ...(name === "degree" && { year: "" }),
-                // Reset destination when source changes
                 ...(name === "source" && { destination: "" }),
             };
 
-            // Recalculate amount when SOURCE or plan changes (not destination)
-            updated.amount = calculateAmount(updated.source, updated.plan);
+            // ← ADD THESE LINES
+            if (name === "source" || name === "plan") {
+                updated.amount = calculateAmount(updated.source, updated.plan);
+            }
 
             return updated;
         });
