@@ -1,68 +1,73 @@
-import React, { useState } from "react";
-import { Search, Eye } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { Search, Eye, RefreshCw } from "lucide-react";
 
 export default function AdminDashboard() {
-    // Placeholder data - replace with spreadsheet data later
-    const [registrations] = useState([
-        {
-            id: 1,
-            name: "Rahul Sharma",
-            aadhar: "1234 5678 9012",
-            phone: "9876543210",
-            year: "2024",
-            degree: "B.Tech",
-            class: "A",
-            status: "Pending",
-        },
-        {
-            id: 2,
-            name: "Priya Patel",
-            aadhar: "2345 6789 0123",
-            phone: "9876543211",
-            year: "2023",
-            degree: "B.Sc",
-            class: "B",
-            status: "Approved",
-        },
-        {
-            id: 3,
-            name: "Amit Kumar",
-            aadhar: "3456 7890 1234",
-            phone: "9876543212",
-            year: "2024",
-            degree: "M.Tech",
-            class: "A",
-            status: "Pending",
-        },
-        {
-            id: 4,
-            name: "Sneha Reddy",
-            aadhar: "4567 8901 2345",
-            phone: "9876543213",
-            year: "2022",
-            degree: "B.Tech",
-            class: "C",
-            status: "Rejected",
-        },
-        {
-            id: 5,
-            name: "Vikram Singh",
-            aadhar: "5678 9012 3456",
-            phone: "9876543214",
-            year: "2024",
-            degree: "B.Com",
-            class: "A",
-            status: "Approved",
-        },
-    ]);
-
+    const [registrations, setRegistrations] = useState([]);
     const [selectedUser, setSelectedUser] = useState(null);
     const [searchTerm, setSearchTerm] = useState("");
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+
+    // Replace with your deployed Google Apps Script Web App URL
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby7pI3sOU_AfT2KBjavs-3sWez5XHnRT0u8kdLjXVuSaVPpPAwxYBQhZ7LLvdtRJWxR4g/exec";
+
+    const fetchData = async () => {
+        setLoading(true);
+        setError(null);
+        try {
+            const response = await fetch(SCRIPT_URL);
+            const result = await response.json();
+            
+            if (result.status === 'success') {
+                setRegistrations(result.data);
+            } else {
+                setError(result.message);
+            }
+        } catch (err) {
+            setError("Failed to fetch data: " + err.message);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const updateStatus = async (id, newStatus) => {
+        try {
+            // Update locally
+            setRegistrations(prev => 
+                prev.map(reg => 
+                    reg.id === id ? { ...reg, status: newStatus } : reg
+                )
+            );
+            
+            // Find the registration to update
+            const registration = registrations.find(reg => reg.id === id);
+            
+            // Send update to Google Sheets
+            await fetch(SCRIPT_URL, {
+                method: 'POST',
+                body: JSON.stringify({
+                    action: 'updateStatus',
+                    rowIndex: id,
+                    status: newStatus,
+                    email: registration.email
+                })
+            });
+        } catch (err) {
+            console.error("Failed to update status:", err);
+            // Refresh data to sync with sheet
+            fetchData();
+        }
+    };
+
+    useEffect(() => {
+        fetchData();
+    }, []);
 
     const filteredRegistrations = registrations.filter(
         (reg) =>
             reg.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            reg.aadhar.includes(searchTerm)
+            reg.aadhar.includes(searchTerm) ||
+            reg.phone.includes(searchTerm)
     );
 
     const handleViewDetails = (user) => {
@@ -87,6 +92,7 @@ export default function AdminDashboard() {
             <RegistrationDetails
                 user={selectedUser}
                 onBack={() => setSelectedUser(null)}
+                onStatusUpdate={updateStatus}
             />
         );
     }
@@ -95,14 +101,31 @@ export default function AdminDashboard() {
         <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-white p-8">
             <div className="max-w-7xl mx-auto">
                 {/* Header */}
-                <div className="mb-12">
-                    <h1 className="text-5xl font-light text-slate-900 mb-4">
-                        Admin Dashboard
-                    </h1>
-                    <p className="text-xl text-slate-600">
-                        Railway Concession Management System
-                    </p>
+                <div className="mb-12 flex justify-between items-center">
+                    <div>
+                        <h1 className="text-5xl font-light text-slate-900 mb-4">
+                            Admin Dashboard
+                        </h1>
+                        <p className="text-xl text-slate-600">
+                            Railway Concession Management System
+                        </p>
+                    </div>
+                    <button
+                        onClick={fetchData}
+                        disabled={loading}
+                        className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl disabled:opacity-50"
+                    >
+                        <RefreshCw size={20} className={loading ? "animate-spin" : ""} />
+                        Refresh
+                    </button>
                 </div>
+
+                {/* Error Message */}
+                {error && (
+                    <div className="mb-8 bg-red-50 border border-red-300 rounded-xl p-4 text-red-700">
+                        {error}
+                    </div>
+                )}
 
                 {/* Search Bar */}
                 <div className="mb-8">
@@ -113,7 +136,7 @@ export default function AdminDashboard() {
                         />
                         <input
                             type="text"
-                            placeholder="Search by name or Aadhar number..."
+                            placeholder="Search by name, Aadhar number, or phone..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             className="w-full pl-14 pr-5 py-4 text-base bg-white border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-slate-900 placeholder-slate-400 shadow-sm"
@@ -169,108 +192,114 @@ export default function AdminDashboard() {
                     </div>
                 </div>
 
-                {/* Table */}
-                <div className="bg-white/70 backdrop-blur-xl rounded-3xl shadow-[0_20px_60px_rgba(0,0,0,0.3)] border border-slate-200/50 overflow-hidden">
-                    <div className="overflow-x-auto">
-                        <table className="w-full">
-                            <thead className="bg-slate-100/80 border-b border-slate-200">
-                                <tr>
-                                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-700 uppercase tracking-wider">
-                                        Name
-                                    </th>
-                                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-700 uppercase tracking-wider">
-                                        Aadhar Number
-                                    </th>
-                                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-700 uppercase tracking-wider">
-                                        Phone
-                                    </th>
-                                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-700 uppercase tracking-wider">
-                                        Year
-                                    </th>
-                                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-700 uppercase tracking-wider">
-                                        Degree
-                                    </th>
-                                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-700 uppercase tracking-wider">
-                                        Status
-                                    </th>
-                                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-700 uppercase tracking-wider">
-                                        Action
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-slate-200">
-                                {filteredRegistrations.map((reg) => (
-                                    <tr
-                                        key={reg.id}
-                                        className="hover:bg-slate-50/50 transition-colors"
-                                    >
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900">
-                                            {reg.name}
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600">
-                                            {reg.aadhar}
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600">
-                                            {reg.phone}
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600">
-                                            {reg.year}
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600">
-                                            {reg.degree}
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <span
-                                                className={`px-3 py-1 text-xs font-semibold rounded-full border ${getStatusColor(
-                                                    reg.status
-                                                )}`}
-                                            >
-                                                {reg.status}
-                                            </span>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm">
-                                            <button
-                                                onClick={() =>
-                                                    handleViewDetails(reg)
-                                                }
-                                                className="flex items-center gap-2 text-blue-600 hover:text-blue-800 font-medium transition-colors"
-                                            >
-                                                <Eye size={16} />
-                                                View
-                                            </button>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
+                {/* Loading State */}
+                {loading && registrations.length === 0 && (
+                    <div className="text-center py-12">
+                        <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+                        <p className="mt-4 text-slate-600">Loading registrations...</p>
                     </div>
+                )}
 
-                    {filteredRegistrations.length === 0 && (
-                        <div className="text-center py-12 text-slate-500">
-                            No registrations found
+                {/* Table */}
+                {!loading && (
+                    <div className="bg-white/70 backdrop-blur-xl rounded-3xl shadow-[0_20px_60px_rgba(0,0,0,0.3)] border border-slate-200/50 overflow-hidden">
+                        <div className="overflow-x-auto">
+                            <table className="w-full">
+                                <thead className="bg-slate-100/80 border-b border-slate-200">
+                                    <tr>
+                                        <th className="px-6 py-4 text-left text-xs font-bold text-slate-700 uppercase tracking-wider">
+                                            Name
+                                        </th>
+                                        <th className="px-6 py-4 text-left text-xs font-bold text-slate-700 uppercase tracking-wider">
+                                            Aadhar Number
+                                        </th>
+                                        <th className="px-6 py-4 text-left text-xs font-bold text-slate-700 uppercase tracking-wider">
+                                            Phone
+                                        </th>
+                                        <th className="px-6 py-4 text-left text-xs font-bold text-slate-700 uppercase tracking-wider">
+                                            Year
+                                        </th>
+                                        <th className="px-6 py-4 text-left text-xs font-bold text-slate-700 uppercase tracking-wider">
+                                            Degree
+                                        </th>
+                                        <th className="px-6 py-4 text-left text-xs font-bold text-slate-700 uppercase tracking-wider">
+                                            Status
+                                        </th>
+                                        <th className="px-6 py-4 text-left text-xs font-bold text-slate-700 uppercase tracking-wider">
+                                            Action
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-slate-200">
+                                    {filteredRegistrations.map((reg) => (
+                                        <tr
+                                            key={reg.id}
+                                            className="hover:bg-slate-50/50 transition-colors"
+                                        >
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900">
+                                                {reg.name}
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600">
+                                                {reg.aadhar}
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600">
+                                                {reg.phone}
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600">
+                                                {reg.year}
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600">
+                                                {reg.degree}
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <span
+                                                    className={`px-3 py-1 text-xs font-semibold rounded-full border ${getStatusColor(
+                                                        reg.status
+                                                    )}`}
+                                                >
+                                                    {reg.status}
+                                                </span>
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm">
+                                                <button
+                                                    onClick={() =>
+                                                        handleViewDetails(reg)
+                                                    }
+                                                    className="flex items-center gap-2 text-blue-600 hover:text-blue-800 font-medium transition-colors"
+                                                >
+                                                    <Eye size={16} />
+                                                    View
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
                         </div>
-                    )}
-                </div>
+
+                        {filteredRegistrations.length === 0 && !loading && (
+                            <div className="text-center py-12 text-slate-500">
+                                No registrations found
+                            </div>
+                        )}
+                    </div>
+                )}
             </div>
         </div>
     );
 }
 
 // Registration Details Component
-function RegistrationDetails({ user, onBack }) {
-    const [formData] = useState({
-        name: user.name,
-        year: user.year,
-        degree: user.degree,
-        class: user.class,
-        gender: "male",
-        source: "Mumbai Central",
-        destination: "Dadar",
-        plan: "quarterly",
-        amount: 5000,
-        phone: user.phone,
-        aadhar: user.aadhar.replace(/\s/g, ""),
-    });
+function RegistrationDetails({ user, onBack, onStatusUpdate }) {
+    const handleApprove = async () => {
+        await onStatusUpdate(user.id, 'Approved');
+        onBack();
+    };
+
+    const handleReject = async () => {
+        await onStatusUpdate(user.id, 'Rejected');
+        onBack();
+    };
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-white p-8">
@@ -305,7 +334,7 @@ function RegistrationDetails({ user, onBack }) {
                                         Full Name
                                     </label>
                                     <div className="w-full px-5 py-4 text-base bg-slate-100 border border-slate-300 rounded-xl text-slate-900">
-                                        {formData.name}
+                                        {user.name}
                                     </div>
                                 </div>
                                 <div className="grid grid-cols-3 gap-6">
@@ -314,7 +343,7 @@ function RegistrationDetails({ user, onBack }) {
                                             Year
                                         </label>
                                         <div className="w-full px-5 py-4 text-base bg-slate-100 border border-slate-300 rounded-xl text-slate-900">
-                                            {formData.year}
+                                            {user.year}
                                         </div>
                                     </div>
                                     <div>
@@ -322,7 +351,7 @@ function RegistrationDetails({ user, onBack }) {
                                             Degree
                                         </label>
                                         <div className="w-full px-5 py-4 text-base bg-slate-100 border border-slate-300 rounded-xl text-slate-900">
-                                            {formData.degree}
+                                            {user.degree}
                                         </div>
                                     </div>
                                     <div>
@@ -330,7 +359,7 @@ function RegistrationDetails({ user, onBack }) {
                                             Class
                                         </label>
                                         <div className="w-full px-5 py-4 text-base bg-slate-100 border border-slate-300 rounded-xl text-slate-900">
-                                            {formData.class}
+                                            {user.class}
                                         </div>
                                     </div>
                                 </div>
@@ -340,7 +369,7 @@ function RegistrationDetails({ user, onBack }) {
                                             Phone Number
                                         </label>
                                         <div className="w-full px-5 py-4 text-base bg-slate-100 border border-slate-300 rounded-xl text-slate-900">
-                                            {formData.phone}
+                                            {user.phone}
                                         </div>
                                     </div>
                                     <div>
@@ -348,8 +377,16 @@ function RegistrationDetails({ user, onBack }) {
                                             Aadhar Number
                                         </label>
                                         <div className="w-full px-5 py-4 text-base bg-slate-100 border border-slate-300 rounded-xl text-slate-900">
-                                            {formData.aadhar}
+                                            {user.aadhar}
                                         </div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-semibold text-slate-700 mb-2 uppercase tracking-wide">
+                                        Email
+                                    </label>
+                                    <div className="w-full px-5 py-4 text-base bg-slate-100 border border-slate-300 rounded-xl text-slate-900">
+                                        {user.email}
                                     </div>
                                 </div>
                             </div>
@@ -366,7 +403,7 @@ function RegistrationDetails({ user, onBack }) {
                                         Source Station
                                     </label>
                                     <div className="w-full px-5 py-4 text-base bg-slate-100 border border-slate-300 rounded-xl text-slate-900">
-                                        {formData.source}
+                                        {user.source}
                                     </div>
                                 </div>
                                 <div>
@@ -374,7 +411,7 @@ function RegistrationDetails({ user, onBack }) {
                                         Destination Station
                                     </label>
                                     <div className="w-full px-5 py-4 text-base bg-slate-100 border border-slate-300 rounded-xl text-slate-900">
-                                        {formData.destination}
+                                        {user.destination}
                                     </div>
                                 </div>
                             </div>
@@ -391,7 +428,7 @@ function RegistrationDetails({ user, onBack }) {
                                         Subscription Plan
                                     </label>
                                     <div className="w-full px-5 py-4 text-base bg-slate-100 border border-slate-300 rounded-xl text-slate-900 capitalize">
-                                        {formData.plan}
+                                        {user.plan}
                                     </div>
                                 </div>
                                 <div>
@@ -400,7 +437,7 @@ function RegistrationDetails({ user, onBack }) {
                                     </label>
                                     <div className="w-full px-5 py-4 text-base bg-blue-50 border-2 border-blue-200 rounded-xl text-slate-900 font-semibold">
                                         <span className="text-2xl text-blue-700">
-                                            ₹ {formData.amount.toLocaleString()}
+                                            ₹ {Number(user.amount).toLocaleString()}
                                         </span>
                                     </div>
                                 </div>
@@ -409,10 +446,10 @@ function RegistrationDetails({ user, onBack }) {
 
                         {/* Action Buttons */}
                         <div className="flex gap-4 pt-6">
-                            <button className="flex-1 bg-green-600 hover:bg-green-700 text-white font-semibold py-4 text-lg rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl uppercase tracking-wide">
+                            <button onClick={handleApprove} className="flex-1 bg-green-600 hover:bg-green-700 text-white font-semibold py-4 text-lg rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl uppercase tracking-wide">
                                 Approve
                             </button>
-                            <button className="flex-1 bg-red-600 hover:bg-red-700 text-white font-semibold py-4 text-lg rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl uppercase tracking-wide">
+                            <button onClick={handleReject} className="flex-1 bg-red-600 hover:bg-red-700 text-white font-semibold py-4 text-lg rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl uppercase tracking-wide">
                                 Reject
                             </button>
                         </div>
