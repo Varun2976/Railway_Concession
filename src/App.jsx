@@ -45,6 +45,26 @@ function App() {
             return;
         }
 
+        // Validate phone number (10 digits and numeric only)
+        if (idData.phone.length !== 10) {
+            alert("Please enter a valid 10-digit phone number");
+            return;
+        }
+        if (!/^\d+$/.test(idData.phone)) {
+            alert("Phone number must contain only numeric digits (0-9)");
+            return;
+        }
+
+        // Validate Aadhar number (12 digits and numeric only)
+        if (idData.aadhar.length !== 12) {
+            alert("Please enter a valid 12-digit Aadhar number");
+            return;
+        }
+        if (!/^\d+$/.test(idData.aadhar)) {
+            alert("Aadhar number must contain only numeric digits (0-9)");
+            return;
+        }
+
         setIsSubmitting(true);
         try {
             const dataToSend = {
@@ -57,12 +77,14 @@ function App() {
                 source: formData.source,
                 destination: formData.destination,
                 plan: formData.plan,
-                amount: formData.amount,
                 phone: idData.phone,
                 aadhar: idData.aadhar,
+                amount: Number(formData.amount), // Convert to number explicitly
             };
 
-            await fetch(GOOGLE_SCRIPT_URL, {
+            console.log("Data being sent:", dataToSend); // Debug log
+
+            const response = await fetch(GOOGLE_SCRIPT_URL, {
                 method: "POST",
                 mode: "no-cors",
                 headers: {
@@ -72,6 +94,7 @@ function App() {
             });
 
             alert("Form submitted successfully!");
+
             setEmail("");
             setFormData({
                 name: "",
@@ -92,8 +115,8 @@ function App() {
             setPdfPreview(null);
             setCurrentPage("login");
         } catch (error) {
-            alert("Error submitting form. Please try again.");
-            console.error("Error:", error);
+            console.error("Detailed error:", error);
+            alert(`Error submitting form: ${error.message}. Please try again.`);
         } finally {
             setIsSubmitting(false);
         }
@@ -129,14 +152,57 @@ function App() {
         setCurrentPage("idcard");
     };
 
+    const calculateAmount = (source, plan) => {
+        if (!source || !plan) return 0;
+
+        // Stations with ₹463/month pricing
+        const tier1Stations = [
+            "Goregaon",
+            "Borivali",
+            "Malad",
+            "Thane",
+            "Ghansoli",
+            "Ghatkopar",
+        ];
+
+        // Stations with ₹612/month pricing
+        const tier2Stations = ["Airoli", "Kharghar", "Mumra", "Matunga"];
+
+        let monthlyPrice = 0;
+
+        if (tier1Stations.includes(source)) {
+            monthlyPrice = 463;
+        } else if (tier2Stations.includes(source)) {
+            monthlyPrice = 612;
+        }
+
+        // Calculate based on plan
+        if (plan === "monthly") {
+            return monthlyPrice;
+        } else if (plan === "quarterly") {
+            return monthlyPrice * 3;
+        }
+
+        return 0;
+    };
+
     const handleFormChange = (e) => {
         const { name, value } = e.target;
-        setFormData((prevData) => ({
-            ...prevData,
-            [name]: value,
-            // Reset year when degree changes to avoid invalid selections
-            ...(name === "degree" && { year: "" }),
-        }));
+        setFormData((prevData) => {
+            const updated = {
+                ...prevData,
+                [name]: value,
+                // Reset year when degree changes to avoid invalid selections
+                ...(name === "degree" && { year: "" }),
+                // Reset destination when source changes
+                ...(name === "source" && { destination: "" }),
+            };
+
+            // Recalculate amount when SOURCE or plan changes (not destination)
+            updated.amount = calculateAmount(updated.source, updated.plan);
+
+            return updated;
+        });
     };
 
     const handleIdChange = (e) => {
