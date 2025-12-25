@@ -5,6 +5,7 @@ function App() {
     const [email, setEmail] = useState("");
     const [emailError, setEmailError] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [chatbotOpen, setChatbotOpen] = useState(false);
 
     const [formData, setFormData] = useState({
         name: "",
@@ -480,80 +481,156 @@ function App() {
             marginTop: "0.75rem",
             textAlign: "center",
         },
+
+        // CHATBOT UI
+        chatbotWindow: {
+            position: "fixed",
+            bottom: "1.5rem",
+            right: "1.5rem",
+            width: "360px",
+            height: "480px",
+            background: "white",
+            borderRadius: "16px",
+            boxShadow: "0 20px 40px rgba(0,0,0,0.2)",
+            overflow: "hidden",
+            zIndex: 1000,
+        },
+
+        chatbotHeader: {
+            height: "48px",
+            background: "#2563eb",
+            color: "white",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            padding: "0 1rem",
+            fontWeight: "600",
+        },
+
+        chatbotTitle: {
+            fontSize: "1rem",
+        },
+
+        chatbotClose: {
+            background: "transparent",
+            border: "none",
+            color: "white",
+            fontSize: "1.5rem",
+            cursor: "pointer",
+        },
     };
 
     if (currentPage === "login") {
         return (
-            <div style={styles.loginContainer}>
-                <div style={styles.loginBackground}></div>
-                <h2 style={styles.loginTitle}>
-                    <span style={styles.loginTitleGradient}>
-                        Railway Concession
-                    </span>
-                </h2>
-                <div style={styles.loginCard}>
-                    <div style={styles.loginCardInner}>
-                        <h1 style={styles.loginHeading}>Sign In</h1>
-                        <hr></hr>
-                        <div style={{ marginBottom: "2.5rem" }}>
-                            <label style={styles.loginLabel}>Email:</label>
-                            <input
-                                type="email"
-                                value={email}
-                                onChange={(e) => {
-                                    setEmail(e.target.value);
-                                    setEmailError("");
-                                }}
-                                onKeyDown={(e) => {
-                                    if (e.key === "Enter") {
-                                        handleLogin();
-                                    }
-                                }}
-                                placeholder="Example: joe.adam@somaiya.edu"
-                                style={styles.loginInput}
-                                onFocus={(e) => {
-                                    e.target.style.outline =
-                                        "2px solid #2563eb";
-                                    e.target.style.outlineOffset = "2px";
-                                    e.target.style.borderColor = "transparent";
-                                }}
-                                onBlur={(e) => {
-                                    e.target.style.outline = "none";
-                                    e.target.style.borderColor =
-                                        "rgba(209, 213, 219, 0.3)";
-                                }}
-                            />
-                            {emailError && (
-                                <p
-                                    style={{
-                                        color: "#ef4444",
-                                        fontSize: "0.875rem",
-                                        marginTop: "0.5rem",
+            <>
+                <div style={styles.loginContainer}>
+                    <div style={styles.loginBackground}></div>
+                    <h2 style={styles.loginTitle}>
+                        <span style={styles.loginTitleGradient}>
+                            Railway Concession
+                        </span>
+                    </h2>
+                    <div style={styles.loginCard}>
+                        <div style={styles.loginCardInner}>
+                            <h1 style={styles.loginHeading}>Sign In</h1>
+                            <hr />
+                            <div style={{ marginBottom: "2.5rem" }}>
+                                <label style={styles.loginLabel}>Email:</label>
+                                <input
+                                    type="email"
+                                    value={email}
+                                    onChange={(e) => {
+                                        setEmail(e.target.value);
+                                        setEmailError("");
                                     }}
-                                >
-                                    {emailError}
-                                </p>
-                            )}
+                                    onKeyDown={(e) => {
+                                        if (e.key === "Enter") {
+                                            handleLogin();
+                                        }
+                                    }}
+                                    placeholder="Example: joe.adam@somaiya.edu"
+                                    style={styles.loginInput}
+                                    onFocus={(e) => {
+                                        e.target.style.outline =
+                                            "2px solid #2563eb";
+                                        e.target.style.outlineOffset = "2px";
+                                        e.target.style.borderColor =
+                                            "transparent";
+                                    }}
+                                    onBlur={(e) => {
+                                        e.target.style.outline = "none";
+                                        e.target.style.borderColor =
+                                            "rgba(209, 213, 219, 0.3)";
+                                    }}
+                                />
+                                {emailError && (
+                                    <p
+                                        style={{
+                                            color: "#ef4444",
+                                            fontSize: "0.875rem",
+                                            marginTop: "0.5rem",
+                                        }}
+                                    >
+                                        {emailError}
+                                    </p>
+                                )}
+                            </div>
+                            <button
+                                onClick={handleLogin}
+                                style={styles.loginButton}
+                                onMouseOver={(e) => {
+                                    e.target.style.background = "#1d4ed8";
+                                    e.target.style.boxShadow =
+                                        "0 20px 25px -5px rgba(0, 0, 0, 0.1)";
+                                }}
+                                onMouseOut={(e) => {
+                                    e.target.style.background = "#2563eb";
+                                    e.target.style.boxShadow =
+                                        "0 10px 15px -3px rgba(0, 0, 0, 0.1)";
+                                }}
+                            >
+                                Continue
+                            </button>
+                            <button
+                                onClick={() => setChatbotOpen(true)}
+                                style={{
+                                    marginTop: "1rem",
+                                    background: "transparent",
+                                    color: "#2563eb",
+                                    border: "none",
+                                    cursor: "pointer",
+                                    fontSize: "0.9rem",
+                                    textDecoration: "underline",
+                                }}
+                            >
+                                Need help?
+                            </button>
                         </div>
-                        <button
-                            onClick={handleLogin}
-                            style={styles.loginButton}
-                            onMouseOver={(e) => {
-                                e.target.style.background = "#1d4ed8";
-                                e.target.style.boxShadow =
-                                    "0 20px 25px -5px rgba(0, 0, 0, 0.1)";
-                            }}
-                            onMouseOut={(e) => {
-                                e.target.style.background = "#2563eb";
-                                e.target.style.boxShadow =
-                                    "0 10px 15px -3px rgba(0, 0, 0, 0.1)";
-                            }}
-                        >
-                            Continue
-                        </button>
                     </div>
                 </div>
-            </div>
+                {/* Chatbot Window */}
+                {chatbotOpen && (
+                    <div style={styles.chatbotWindow}>
+                        <div style={styles.chatbotHeader}>
+                            <div style={styles.chatbotTitle}>
+                                Support Assistant
+                            </div>
+                            <button
+                                style={styles.chatbotClose}
+                                onClick={() => setChatbotOpen(false)}
+                            >
+                                ×
+                            </button>
+                        </div>
+                        <iframe
+                            src="https://www.chatbase.co/chatbot-iframe/wXvfBD1IhMnOpV2PTuJoH"
+                            width="100%"
+                            style={{ height: "100%", border: "none" }}
+                            frameBorder="0"
+                        ></iframe>
+                    </div>
+                )}
+            </>
         );
     }
 
