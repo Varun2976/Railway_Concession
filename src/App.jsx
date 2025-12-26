@@ -545,7 +545,7 @@ function App() {
                 <div style={styles.loginContainer}>
                     <div style={styles.loginBackground}></div>
                     <button
-                        onClick={() => (window.location.href = "/admin.html")}
+                        onClick={() => (window.location.href = "/admin")}
                         style={styles.adminButton}
                         onMouseOver={(e) => {
                             e.target.style.background = "#1d4ed8";
