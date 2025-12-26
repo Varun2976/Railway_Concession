@@ -456,7 +456,7 @@ function RegistrationDetails({ user, onBack, onStatusUpdate }) {
                                 </div>
                             </div>
                         </div>
-                        
+
                         {/* Document Link */}
                         {user.driveLink && (
                             <div className="pt-6">

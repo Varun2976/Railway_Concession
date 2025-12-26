@@ -20,26 +20,24 @@ function App() {
     });
 
     const [idData, setIdData] = useState({
-    phone: "",
-    aadhar: "",
-    driveLink: "",
-});;
+        phone: "",
+        aadhar: "",
+        driveLink: "",
+    });
 
     const GOOGLE_SCRIPT_URL =
         "https://script.google.com/macros/s/AKfycby7pI3sOU_AfT2KBjavs-3sWez5XHnRT0u8kdLjXVuSaVPpPAwxYBQhZ7LLvdtRJWxR4g/exec";
 
-    
-
     const submitToGoogleSheets = async () => {
         if (!idData.phone || !idData.aadhar || !idData.driveLink) {
-    alert("Please fill in all fields and provide the Drive link");
-    return;
-}
+            alert("Please fill in all fields and provide the Drive link");
+            return;
+        }
 
-if (!idData.driveLink.includes("drive.google.com")) {
-    alert("Please enter a valid Google Drive link");
-    return;
-}
+        if (!idData.driveLink.includes("drive.google.com")) {
+            alert("Please enter a valid Google Drive link");
+            return;
+        }
 
         // Validate phone number (10 digits and numeric only)
         if (idData.phone.length !== 10) {
@@ -111,11 +109,11 @@ if (!idData.driveLink.includes("drive.google.com")) {
                 amount: 0,
             });
             setIdData({
-            phone: "",
-            aadhar: "",
-            driveLink: "",
+                phone: "",
+                aadhar: "",
+                driveLink: "",
             });
-            
+
             setCurrentPage("login");
         } catch (error) {
             console.error("Detailed error:", error);
@@ -1096,22 +1094,24 @@ if (!idData.driveLink.includes("drive.google.com")) {
                                     only for verification purposes
                                 </p>
                             </div>
-                                  <div>
-    <label style={styles.label}>Google Drive Link</label>
-    <input
-        type="url"
-        name="driveLink"
-        value={idData.driveLink}
-        onChange={handleIdChange}
-        placeholder="https://drive.google.com/file/d/..."
-        style={styles.input}
-    />
-    <p style={styles.note}>
-        Make sure the link access is set to <b>Anyone with the link → Viewer</b>
-    </p>
-</div>          
+                            <div>
+                                <label style={styles.label}>
+                                    Google Drive Link
+                                </label>
+                                <input
+                                    type="url"
+                                    name="driveLink"
+                                    value={idData.driveLink}
+                                    onChange={handleIdChange}
+                                    placeholder="https://drive.google.com/file/d/..."
+                                    style={styles.input}
+                                />
+                                <p style={styles.note}>
+                                    Make sure the link access is set to{" "}
+                                    <b>Anyone with the link → Viewer</b>
+                                </p>
+                            </div>
                         </div>
-                        
 
                         <div style={{ marginTop: "2.5rem" }}>
                             <div style={{ display: "flex", gap: "1rem" }}>
