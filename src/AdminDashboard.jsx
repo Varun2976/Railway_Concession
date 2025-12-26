@@ -454,7 +454,6 @@ function RegistrationDetails({ user, onBack, onStatusUpdate }) {
                                 </div>
                             </div>
                         </div>
-
                         {/* Travel Information */}
                         <div>
                             <h2 className="text-2xl font-medium text-slate-800 mb-6 pb-3 border-b border-slate-200">
@@ -479,7 +478,6 @@ function RegistrationDetails({ user, onBack, onStatusUpdate }) {
                                 </div>
                             </div>
                         </div>
-
                         {/* Subscription Details */}
                         <div>
                             <h2 className="text-2xl font-medium text-slate-800 mb-6 pb-3 border-b border-slate-200">
@@ -511,10 +509,10 @@ function RegistrationDetails({ user, onBack, onStatusUpdate }) {
                         </div>
 
                         {/* Document Link */}
-                        {user.documentUrl && (
+                        {user.driveLink && (
                             <div className="pt-6">
                                 <a
-                                    href={user.documentUrl}
+                                    href={user.driveLink}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl"
@@ -524,7 +522,6 @@ function RegistrationDetails({ user, onBack, onStatusUpdate }) {
                                 </a>
                             </div>
                         )}
-
                         {/* Action Buttons */}
                         <div className="flex gap-4 pt-6">
                             <button
