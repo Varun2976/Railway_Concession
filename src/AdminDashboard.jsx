@@ -456,7 +456,21 @@ function RegistrationDetails({ user, onBack, onStatusUpdate }) {
                                 </div>
                             </div>
                         </div>
-
+                        
+                        {/* Document Link */}
+                        {user.driveLink && (
+                            <div className="pt-6">
+                                <a
+                                    href={user.driveLink}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl"
+                                >
+                                    <Eye size={20} />
+                                    View Uploaded Documents
+                                </a>
+                            </div>
+                        )}
                         {/* Action Buttons */}
                         <div className="flex gap-4 pt-6">
                             <button
