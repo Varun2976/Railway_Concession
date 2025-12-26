@@ -168,10 +168,10 @@ export default function AdminDashboard() {
 
                 {/* Search Bar */}
                 <div className="mb-8">
-                    <div className="relative">
+                    <div className="relative flex items-center">
                         <Search
                             size={18}
-                            className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"
+                            className="absolute left-4 text-slate-400 pointer-events-none"
                         />
                         <input
                             type="text"
