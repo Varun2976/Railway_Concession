@@ -170,15 +170,15 @@ export default function AdminDashboard() {
                 <div className="mb-8">
                     <div className="relative">
                         <Search
-                            className="absolute left-5 top-1/2 transform -translate-y-1/2 text-slate-400"
-                            size={20}
+                            size={18}
+                            className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"
                         />
                         <input
                             type="text"
                             placeholder="Search by name, Aadhar number, phone, or email..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full pl-14 pr-5 py-4 text-base bg-white border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-slate-900 placeholder-slate-400 shadow-sm"
+                            className="w-full pl-12 pr-5 py-4 text-base bg-white border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-slate-900 placeholder-slate-400 shadow-sm"
                         />
                     </div>
                 </div>
