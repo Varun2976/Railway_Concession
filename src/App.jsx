@@ -5,7 +5,6 @@ function App() {
     const [email, setEmail] = useState("");
     const [emailError, setEmailError] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [chatbotOpen, setChatbotOpen] = useState(false);
 
     const [formData, setFormData] = useState({
         name: "",
@@ -518,6 +517,26 @@ function App() {
             fontSize: "1.5rem",
             cursor: "pointer",
         },
+        adminButton: {
+            position: "fixed",
+            top: "1.5rem",
+            right: "1.5rem",
+            background: "rgba(37, 99, 235, 0.9)",
+            backdropFilter: "blur(20px)",
+            color: "white",
+            fontWeight: "600",
+            padding: "0.875rem 1.75rem",
+            fontSize: "0.875rem",
+            borderRadius: "16px",
+            border: "1px solid rgba(255, 255, 255, 0.2)",
+            cursor: "pointer",
+            boxShadow:
+                "0 20px 40px -12px rgba(37, 99, 235, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.1) inset",
+            transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+            zIndex: 1000,
+            letterSpacing: "0.05em",
+            textTransform: "uppercase",
+        },
     };
 
     if (currentPage === "login") {
@@ -525,6 +544,20 @@ function App() {
             <>
                 <div style={styles.loginContainer}>
                     <div style={styles.loginBackground}></div>
+                    <button
+                        onClick={() => (window.location.href = "/admin.html")}
+                        style={styles.adminButton}
+                        onMouseOver={(e) => {
+                            e.target.style.background = "#1d4ed8";
+                            e.target.style.transform = "scale(1.05)";
+                        }}
+                        onMouseOut={(e) => {
+                            e.target.style.background = "#2563eb";
+                            e.target.style.transform = "scale(1)";
+                        }}
+                    >
+                        Admin Panel
+                    </button>
                     <h2 style={styles.loginTitle}>
                         <span style={styles.loginTitleGradient}>
                             Railway Concession
