@@ -19,7 +19,21 @@ export default function AdminDashboard() {
             const result = await response.json();
 
             if (result.status === "success") {
-                setRegistrations(result.data);
+                // Remove duplicates based on a unique identifier (email + aadhar)
+                const uniqueRegistrations = [];
+                const seen = new Set();
+
+                for (const reg of result.data) {
+                    // Create a unique key based on email and aadhar
+                    const uniqueKey = `${reg.email}-${reg.aadhar}`;
+
+                    if (!seen.has(uniqueKey)) {
+                        seen.add(uniqueKey);
+                        uniqueRegistrations.push(reg);
+                    }
+                }
+
+                setRegistrations(uniqueRegistrations);
             } else {
                 setError(result.message);
             }
@@ -32,30 +46,44 @@ export default function AdminDashboard() {
 
     const updateStatus = async (id, newStatus) => {
         try {
-            // Update locally
-            setRegistrations((prev) =>
-                prev.map((reg) =>
-                    reg.id === id ? { ...reg, status: newStatus } : reg
-                )
-            );
-
             // Find the registration to update
             const registration = registrations.find((reg) => reg.id === id);
 
+            if (!registration) {
+                throw new Error("Registration not found");
+            }
+
             // Send update to Google Sheets
-            await fetch(SCRIPT_URL, {
+            const response = await fetch(SCRIPT_URL, {
                 method: "POST",
                 body: JSON.stringify({
                     action: "updateStatus",
-                    rowIndex: id,
-                    status: newStatus,
                     email: registration.email,
+                    aadhar: registration.aadhar,
+                    status: newStatus,
                 }),
             });
+
+            // Wait for the response
+            const result = await response.json();
+
+            if (result.status === "success") {
+                // Update locally only after successful server update
+                setRegistrations((prev) =>
+                    prev.map((reg) =>
+                        reg.id === id ? { ...reg, status: newStatus } : reg
+                    )
+                );
+                return true;
+            } else {
+                throw new Error(result.message || "Failed to update status");
+            }
         } catch (err) {
             console.error("Failed to update status:", err);
+            setError("Failed to update status: " + err.message);
             // Refresh data to sync with sheet
-            fetchData();
+            await fetchData();
+            throw err;
         }
     };
 
@@ -69,10 +97,12 @@ export default function AdminDashboard() {
         const name = (reg.name || "").toLowerCase();
         const aadhar = (reg.aadhar || "").toString();
         const phone = (reg.phone || "").toString();
+        const email = (reg.email || "").toLowerCase();
         return (
             name.includes(search) ||
             aadhar.includes(searchTerm) ||
-            phone.includes(searchTerm)
+            phone.includes(searchTerm) ||
+            email.includes(search)
         );
     });
 
@@ -145,7 +175,7 @@ export default function AdminDashboard() {
                         />
                         <input
                             type="text"
-                            placeholder="Search by name, Aadhar number, or phone..."
+                            placeholder="Search by name, Aadhar number, phone, or email..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             className="w-full pl-14 pr-5 py-4 text-base bg-white border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-slate-900 placeholder-slate-400 shadow-sm"
@@ -222,7 +252,7 @@ export default function AdminDashboard() {
                                             Name
                                         </th>
                                         <th className="px-6 py-4 text-left text-xs font-bold text-slate-700 uppercase tracking-wider">
-                                            Aadhar Number
+                                            Email
                                         </th>
                                         <th className="px-6 py-4 text-left text-xs font-bold text-slate-700 uppercase tracking-wider">
                                             Phone
@@ -234,6 +264,9 @@ export default function AdminDashboard() {
                                             Degree
                                         </th>
                                         <th className="px-6 py-4 text-left text-xs font-bold text-slate-700 uppercase tracking-wider">
+                                            Plan
+                                        </th>
+                                        <th className="px-6 py-4 text-left text-xs font-bold text-slate-700 uppercase tracking-wider">
                                             Status
                                         </th>
                                         <th className="px-6 py-4 text-left text-xs font-bold text-slate-700 uppercase tracking-wider">
@@ -242,16 +275,16 @@ export default function AdminDashboard() {
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-200">
-                                    {filteredRegistrations.map((reg) => (
+                                    {filteredRegistrations.map((reg, index) => (
                                         <tr
-                                            key={reg.id}
+                                            key={`${reg.email}-${index}`}
                                             className="hover:bg-slate-50/50 transition-colors"
                                         >
                                             <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900">
                                                 {reg.name}
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600">
-                                                {reg.aadhar}
+                                                {reg.email}
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600">
                                                 {reg.phone}
@@ -261,6 +294,9 @@ export default function AdminDashboard() {
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600">
                                                 {reg.degree}
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600 capitalize">
+                                                {reg.plan}
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap">
                                                 <span
@@ -302,14 +338,30 @@ export default function AdminDashboard() {
 
 // Registration Details Component
 function RegistrationDetails({ user, onBack, onStatusUpdate }) {
+    const [updating, setUpdating] = useState(false);
+
     const handleApprove = async () => {
-        onBack();
-        await onStatusUpdate(user.id, "Approved");
+        setUpdating(true);
+        try {
+            await onStatusUpdate(user.id, "Approved");
+            onBack();
+        } catch (err) {
+            console.error("Error approving:", err);
+        } finally {
+            setUpdating(false);
+        }
     };
 
     const handleReject = async () => {
-        onBack();
-        await onStatusUpdate(user.id, "Rejected");
+        setUpdating(true);
+        try {
+            await onStatusUpdate(user.id, "Rejected");
+            onBack();
+        } catch (err) {
+            console.error("Error rejecting:", err);
+        } finally {
+            setUpdating(false);
+        }
     };
 
     return (
@@ -318,7 +370,8 @@ function RegistrationDetails({ user, onBack, onStatusUpdate }) {
                 {/* Back Button */}
                 <button
                     onClick={onBack}
-                    className="mb-8 flex items-center gap-2 text-blue-600 hover:text-blue-800 font-medium transition-colors text-lg"
+                    disabled={updating}
+                    className="mb-8 flex items-center gap-2 text-blue-600 hover:text-blue-800 font-medium transition-colors text-lg disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                     ← Back to Dashboard
                 </button>
@@ -458,10 +511,10 @@ function RegistrationDetails({ user, onBack, onStatusUpdate }) {
                         </div>
 
                         {/* Document Link */}
-                        {user.driveLink && (
+                        {user.documentUrl && (
                             <div className="pt-6">
                                 <a
-                                    href={user.driveLink}
+                                    href={user.documentUrl}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl"
@@ -471,19 +524,22 @@ function RegistrationDetails({ user, onBack, onStatusUpdate }) {
                                 </a>
                             </div>
                         )}
+
                         {/* Action Buttons */}
                         <div className="flex gap-4 pt-6">
                             <button
                                 onClick={handleApprove}
-                                className="flex-1 bg-green-600 hover:bg-green-700 text-white font-semibold py-4 text-lg rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl uppercase tracking-wide"
+                                disabled={updating}
+                                className="flex-1 bg-green-600 hover:bg-green-700 text-white font-semibold py-4 text-lg rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl uppercase tracking-wide disabled:opacity-50 disabled:cursor-not-allowed"
                             >
-                                Approve
+                                {updating ? "Processing..." : "Approve"}
                             </button>
                             <button
                                 onClick={handleReject}
-                                className="flex-1 bg-red-600 hover:bg-red-700 text-white font-semibold py-4 text-lg rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl uppercase tracking-wide"
+                                disabled={updating}
+                                className="flex-1 bg-red-600 hover:bg-red-700 text-white font-semibold py-4 text-lg rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl uppercase tracking-wide disabled:opacity-50 disabled:cursor-not-allowed"
                             >
-                                Reject
+                                {updating ? "Processing..." : "Reject"}
                             </button>
                         </div>
                     </div>
