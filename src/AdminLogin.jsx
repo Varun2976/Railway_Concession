@@ -96,7 +96,7 @@ export default function AdminLogin() {
                                             username: e.target.value,
                                         })
                                     }
-                                    placeholder="Enter your username"
+                                    placeholder="Enter your username (Enter admin)"
                                     style={styles.input}
                                     onFocus={(e) => {
                                         e.target.style.borderColor = "#a855f7";
@@ -122,7 +122,7 @@ export default function AdminLogin() {
                                             password: e.target.value,
                                         })
                                     }
-                                    placeholder="Enter your password"
+                                    placeholder="Enter your password (Enter admin123)"
                                     style={styles.input}
                                     onFocus={(e) => {
                                         e.target.style.borderColor = "#a855f7";
